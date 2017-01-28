@@ -1,0 +1,7 @@
+rootProject.name = 'user_blowfish'
+
+include ':forge-server'
+project(':forge-server').projectDir=new File("$settingsDir/../../forge-server")
+
+include ':forge-server-mod-user'
+project(':forge-server-mod-user').projectDir=new File("$settingsDir/../forge-server-mod-user")
