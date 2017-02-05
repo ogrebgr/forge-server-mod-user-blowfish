@@ -3,9 +3,13 @@ package com.bolyartech.forge.server.module.user_blowfish;
 import com.bolyartech.forge.server.db.DbPool;
 import com.bolyartech.forge.server.module.HttpModule;
 import com.bolyartech.forge.server.module.user.data.screen_name.ScreenNameDbh;
+import com.bolyartech.forge.server.module.user.data.screen_name.ScreenNameDbhImpl;
 import com.bolyartech.forge.server.module.user.data.user.UserDbh;
+import com.bolyartech.forge.server.module.user.data.user.UserDbhImpl;
 import com.bolyartech.forge.server.module.user_blowfish.data.BlowfishDbh;
+import com.bolyartech.forge.server.module.user_blowfish.data.BlowfishDbhImpl;
 import com.bolyartech.forge.server.module.user_blowfish.data.UserBlowfishDbh;
+import com.bolyartech.forge.server.module.user_blowfish.data.UserBlowfishDbhImpl;
 import com.bolyartech.forge.server.module.user_blowfish.endpoints.AutoregistrationBfEp;
 import com.bolyartech.forge.server.module.user_blowfish.endpoints.LoginBfEp;
 import com.bolyartech.forge.server.module.user_blowfish.endpoints.RegistrationBfEp;
@@ -30,6 +34,15 @@ public class BlowfishUserModule implements HttpModule {
     private final UserDbh mUserDbh;
     private final BlowfishDbh mBlowfishDbh;
     private final ScreenNameDbh mScreenNameDbh;
+
+
+    public static BlowfishUserModule createDefault(DbPool dbPool) {
+        return new BlowfishUserModule(dbPool,
+                new UserBlowfishDbhImpl(),
+                new UserDbhImpl(),
+                new BlowfishDbhImpl(),
+                new ScreenNameDbhImpl());
+    }
 
 
     public BlowfishUserModule(String pathPrefix, DbPool dbPool, UserBlowfishDbh userBlowfishDbh, UserDbh userDbh,
