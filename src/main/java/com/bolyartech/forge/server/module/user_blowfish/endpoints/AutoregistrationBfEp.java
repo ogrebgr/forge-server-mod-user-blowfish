@@ -24,19 +24,19 @@ import java.util.UUID;
 
 
 public class AutoregistrationBfEp extends ForgeDbEndpoint {
-    private final Gson mGson;
+    private final Gson gson;
 
-    private final UserDbh mUserDbh;
-    private final BlowfishDbh mBlowfishDbh;
-    private final UserBlowfishDbh mUserBlowfishDbh;
+    private final UserDbh userDbh;
+    private final BlowfishDbh blowfishDbh;
+    private final UserBlowfishDbh userBlowfishDbh;
 
 
     public AutoregistrationBfEp(DbPool dbPool, UserDbh userDbh, BlowfishDbh scramDbh, UserBlowfishDbh userBlowfishDbh) {
         super(dbPool);
-        mGson = new Gson();
-        mUserDbh = userDbh;
-        mBlowfishDbh = scramDbh;
-        mUserBlowfishDbh = userBlowfishDbh;
+        gson = new Gson();
+        this.userDbh = userDbh;
+        blowfishDbh = scramDbh;
+        this.userBlowfishDbh = userBlowfishDbh;
     }
 
 
@@ -56,7 +56,7 @@ public class AutoregistrationBfEp extends ForgeDbEndpoint {
             // adding "g" as a prefix in order to make the username valid when UUID starts with number
             username = "g" + UUID.randomUUID().toString().replace("-", "");
 
-            us = mUserBlowfishDbh.createNew(dbc, mUserDbh, mBlowfishDbh, username, password);
+            us = userBlowfishDbh.createNew(dbc, userDbh, blowfishDbh, username, password);
             if (us != null) {
                 break;
             }
@@ -70,7 +70,7 @@ public class AutoregistrationBfEp extends ForgeDbEndpoint {
         session.setVar(SessionVars.VAR_LOGIN_TYPE, LoginType.NATIVE);
 
         return new OkResponse(
-                mGson.toJson(new RokResponseAutoregistration(username,
+                gson.toJson(new RokResponseAutoregistration(username,
                         password,
                         session.getMaxInactiveInterval(),
                         si

@@ -27,12 +27,12 @@ public class RegistrationPostAutoBfEp extends ForgeUserDbEndpoint {
     static final String PARAM_NEW_PASSWORD = "new_password";
     static final String PARAM_SCREEN_NAME = "screen_name";
 
-    private final Gson mGson;
+    private final Gson gson;
 
-    private final UserDbh mUserDbh;
-    private final BlowfishDbh mBlowfishDbh;
-    private final UserBlowfishDbh mUserBlowfishDbh;
-    private final ScreenNameDbh mScreenNameDbh;
+    private final UserDbh userDbh;
+    private final BlowfishDbh blowfishDbh;
+    private final UserBlowfishDbh userBlowfishDbh;
+    private final ScreenNameDbh screenNameDbh;
 
 
     public RegistrationPostAutoBfEp(DbPool dbPool,
@@ -42,11 +42,11 @@ public class RegistrationPostAutoBfEp extends ForgeUserDbEndpoint {
                                     ScreenNameDbh screenNameDbh) {
 
         super(dbPool);
-        mGson = new Gson();
-        mUserDbh = userDbh;
-        mBlowfishDbh = scramDbh;
-        mUserBlowfishDbh = userBlowfishDbh;
-        mScreenNameDbh = screenNameDbh;
+        gson = new Gson();
+        this.userDbh = userDbh;
+        blowfishDbh = scramDbh;
+        this.userBlowfishDbh = userBlowfishDbh;
+        this.screenNameDbh = screenNameDbh;
     }
 
 
@@ -63,7 +63,7 @@ public class RegistrationPostAutoBfEp extends ForgeUserDbEndpoint {
             return MissingParametersResponse.getInstance();
         }
 
-        ScreenName existingScreenName = mScreenNameDbh.loadByUser(dbc, user.getId());
+        ScreenName existingScreenName = screenNameDbh.loadByUser(dbc, user.getId());
         if (existingScreenName == null) {
             if (Strings.isNullOrEmpty(screenName)) {
                 return new MissingParametersResponse("missing screen name");
@@ -84,10 +84,10 @@ public class RegistrationPostAutoBfEp extends ForgeUserDbEndpoint {
 
         boolean rez;
         if (existingScreenName == null) {
-            rez = mUserBlowfishDbh.replaceExisting(dbc, mBlowfishDbh, mScreenNameDbh,
+            rez = userBlowfishDbh.replaceExisting(dbc, blowfishDbh, screenNameDbh,
                     user.getId(), newUsername, newPassword, screenName);
         } else {
-            mUserBlowfishDbh.replaceExistingNamed(dbc, mBlowfishDbh,
+            userBlowfishDbh.replaceExistingNamed(dbc, blowfishDbh,
                     user.getId(), newUsername, newPassword);
             rez = true;
         }

@@ -32,18 +32,18 @@ public class LoginBfEp extends ForgeDbSecureEndpoint {
     static final String PARAM_PASSWORD = "password";
 
 
-    private final UserDbh mUserDbh;
-    private final BlowfishDbh mBlowfishDbh;
-    private final ScreenNameDbh mScreenNameDbh;
+    private final UserDbh UserDbh;
+    private final BlowfishDbh BlowfishDbh;
+    private final ScreenNameDbh ScreenNameDbh;
 
     private final Gson mGson;
 
 
     public LoginBfEp(DbPool dbPool, UserDbh userDbh, BlowfishDbh blowfishDbh, ScreenNameDbh screenNameDbh) {
         super(dbPool);
-        mUserDbh = userDbh;
-        mBlowfishDbh = blowfishDbh;
-        mScreenNameDbh = screenNameDbh;
+        UserDbh = userDbh;
+        BlowfishDbh = blowfishDbh;
+        ScreenNameDbh = screenNameDbh;
         mGson = new Gson();
     }
 
@@ -54,10 +54,10 @@ public class LoginBfEp extends ForgeDbSecureEndpoint {
         String password = ctx.getFromPost(PARAM_PASSWORD);
 
         if (Params.areAllPresent(username, password)) {
-            Blowfish bfUser = mBlowfishDbh.loadByUsername(dbc, username);
+            Blowfish bfUser = BlowfishDbh.loadByUsername(dbc, username);
             if (bfUser != null) {
                 if ((BCrypt.checkpw(password, bfUser.getPasswordHash()))) {
-                    User user = mUserDbh.loadById(dbc, bfUser.getUser());
+                    User user = UserDbh.loadById(dbc, bfUser.getUser());
 
                     Session session = ctx.getSession();
                     session.setVar(SessionVars.VAR_USER, user);
@@ -79,7 +79,7 @@ public class LoginBfEp extends ForgeDbSecureEndpoint {
 
 
     private SessionInfo createSessionInfo(Connection dbc, long userId) throws SQLException {
-        ScreenName sn = mScreenNameDbh.loadByUser(dbc, userId);
+        ScreenName sn = ScreenNameDbh.loadByUser(dbc, userId);
 
         SessionInfo si;
         if (sn != null) {

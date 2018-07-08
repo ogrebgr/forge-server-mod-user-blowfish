@@ -31,24 +31,24 @@ public class RegistrationBfEp extends ForgeDbSecureEndpoint {
     static final String PARAM_PASSWORD = "password";
     static final String PARAM_SCREEN_NAME = "screen_name";
 
-    private final Gson mGson;
+    private final Gson gson;
 
-    private final UserDbh mUserDbh;
-    private final BlowfishDbh mBlowfishDbh;
-    private final UserBlowfishDbh mUserBlowfishDbh;
-    private final ScreenNameDbh mScreenNameDbh;
+    private final UserDbh userDbh;
+    private final BlowfishDbh blowfishDbh;
+    private final UserBlowfishDbh userBlowfishDbh;
+    private final ScreenNameDbh screenNameDbh;
 
 
     public RegistrationBfEp(DbPool dbPool, UserDbh userDbh, BlowfishDbh blowfishDbh, UserBlowfishDbh userBlowfishDbh,
                             ScreenNameDbh screenNameDbh) {
 
         super(dbPool);
-        mUserDbh = userDbh;
-        mBlowfishDbh = blowfishDbh;
-        mUserBlowfishDbh = userBlowfishDbh;
-        mScreenNameDbh = screenNameDbh;
+        this.userDbh = userDbh;
+        this.blowfishDbh = blowfishDbh;
+        this.userBlowfishDbh = userBlowfishDbh;
+        this.screenNameDbh = screenNameDbh;
 
-        mGson = new Gson();
+        gson = new Gson();
     }
 
 
@@ -78,8 +78,8 @@ public class RegistrationBfEp extends ForgeDbSecureEndpoint {
         }
 
 
-        UserBlowfishDbh.NewNamedResult rez = mUserBlowfishDbh.createNewNamed(dbc, mUserDbh, mBlowfishDbh,
-                mScreenNameDbh, username, password, screenName);
+        UserBlowfishDbh.NewNamedResult rez = userBlowfishDbh.createNewNamed(dbc, userDbh, blowfishDbh,
+                screenNameDbh, username, password, screenName);
 
         if (rez.isOk) {
             SessionInfo si = new SessionInfo(rez.mUserBlowfish.getUser().getId(), null);
@@ -88,7 +88,7 @@ public class RegistrationBfEp extends ForgeDbSecureEndpoint {
             session.setVar(SessionVars.VAR_USER, rez.mUserBlowfish.getUser());
             session.setVar(SessionVars.VAR_LOGIN_TYPE, LoginType.NATIVE);
             return new OkResponse(
-                    mGson.toJson(new RokLogin(
+                    gson.toJson(new RokLogin(
                             session.getMaxInactiveInterval(),
                             si
                     )));

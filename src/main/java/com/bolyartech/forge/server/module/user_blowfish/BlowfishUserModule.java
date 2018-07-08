@@ -28,12 +28,12 @@ public class BlowfishUserModule implements HttpModule {
     private static final int MODULE_VERSION_CODE = 1;
     private static final String MODULE_VERSION_NAME = "1.0.0";
 
-    private final String mPathPrefix;
-    private final DbPool mDbPool;
-    private final UserBlowfishDbh mUserBlowfishDbh;
-    private final UserDbh mUserDbh;
-    private final BlowfishDbh mBlowfishDbh;
-    private final ScreenNameDbh mScreenNameDbh;
+    private final String pathPrefix;
+    private final DbPool dbPool;
+    private final UserBlowfishDbh userBlowfishDbh;
+    private final UserDbh userDbh;
+    private final BlowfishDbh blowfishDbh;
+    private final ScreenNameDbh screenNameDbh;
 
 
     public static BlowfishUserModule createDefault(DbPool dbPool) {
@@ -47,12 +47,12 @@ public class BlowfishUserModule implements HttpModule {
 
     public BlowfishUserModule(String pathPrefix, DbPool dbPool, UserBlowfishDbh userBlowfishDbh, UserDbh userDbh,
                               BlowfishDbh blowfishDbh, ScreenNameDbh screenNameDbh) {
-        mPathPrefix = pathPrefix;
-        mDbPool = dbPool;
-        mUserBlowfishDbh = userBlowfishDbh;
-        mUserDbh = userDbh;
-        mBlowfishDbh = blowfishDbh;
-        mScreenNameDbh = screenNameDbh;
+        this.pathPrefix = pathPrefix;
+        this.dbPool = dbPool;
+        this.userBlowfishDbh = userBlowfishDbh;
+        this.userDbh = userDbh;
+        this.blowfishDbh = blowfishDbh;
+        this.screenNameDbh = screenNameDbh;
     }
 
 
@@ -68,14 +68,14 @@ public class BlowfishUserModule implements HttpModule {
     public List<Route> createRoutes() {
         List<Route> ret = new ArrayList<>();
 
-        ret.add(new PostRoute(mPathPrefix + "autoregister",
-                new AutoregistrationBfEp(mDbPool, mUserDbh, mBlowfishDbh, mUserBlowfishDbh)));
-        ret.add(new PostRoute(mPathPrefix + "login",
-                new LoginBfEp(mDbPool, mUserDbh, mBlowfishDbh, mScreenNameDbh)));
-        ret.add(new PostRoute(mPathPrefix + "register",
-                new RegistrationBfEp(mDbPool, mUserDbh, mBlowfishDbh, mUserBlowfishDbh, mScreenNameDbh)));
-        ret.add(new PostRoute(mPathPrefix + "register_postauto",
-                new RegistrationPostAutoBfEp(mDbPool, mUserDbh, mBlowfishDbh, mUserBlowfishDbh, mScreenNameDbh)));
+        ret.add(new PostRoute(pathPrefix + "autoregister",
+                new AutoregistrationBfEp(dbPool, userDbh, blowfishDbh, userBlowfishDbh)));
+        ret.add(new PostRoute(pathPrefix + "login",
+                new LoginBfEp(dbPool, userDbh, blowfishDbh, screenNameDbh)));
+        ret.add(new PostRoute(pathPrefix + "register",
+                new RegistrationBfEp(dbPool, userDbh, blowfishDbh, userBlowfishDbh, screenNameDbh)));
+        ret.add(new PostRoute(pathPrefix + "register_postauto",
+                new RegistrationPostAutoBfEp(dbPool, userDbh, blowfishDbh, userBlowfishDbh, screenNameDbh)));
 
 
         return ret;
