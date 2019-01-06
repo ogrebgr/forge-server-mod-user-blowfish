@@ -6,10 +6,7 @@ import com.bolyartech.forge.server.module.user.data.screen_name.ScreenNameDbh;
 import com.bolyartech.forge.server.module.user.data.screen_name.ScreenNameDbhImpl;
 import com.bolyartech.forge.server.module.user.data.user.UserDbh;
 import com.bolyartech.forge.server.module.user.data.user.UserDbhImpl;
-import com.bolyartech.forge.server.module.user_blowfish.data.BlowfishDbh;
-import com.bolyartech.forge.server.module.user_blowfish.data.BlowfishDbhImpl;
-import com.bolyartech.forge.server.module.user_blowfish.data.UserBlowfishDbh;
-import com.bolyartech.forge.server.module.user_blowfish.data.UserBlowfishDbhImpl;
+import com.bolyartech.forge.server.module.user_blowfish.data.*;
 import com.bolyartech.forge.server.module.user_blowfish.endpoints.AutoregistrationBfEp;
 import com.bolyartech.forge.server.module.user_blowfish.endpoints.LoginBfEp;
 import com.bolyartech.forge.server.module.user_blowfish.endpoints.RegistrationBfEp;
@@ -33,6 +30,7 @@ public class BlowfishUserModule implements HttpModule {
     private final UserBlowfishDbh userBlowfishDbh;
     private final UserDbh userDbh;
     private final BlowfishDbh blowfishDbh;
+    private final BlowfishDbh blowfishPostAutoDbh;
     private final ScreenNameDbh screenNameDbh;
 
 
@@ -41,26 +39,28 @@ public class BlowfishUserModule implements HttpModule {
                 new UserBlowfishDbhImpl(),
                 new UserDbhImpl(),
                 new BlowfishDbhImpl(),
+                new BlowfishPostAutoDbhImpl(),
                 new ScreenNameDbhImpl());
     }
 
 
     public BlowfishUserModule(String pathPrefix, DbPool dbPool, UserBlowfishDbh userBlowfishDbh, UserDbh userDbh,
-                              BlowfishDbh blowfishDbh, ScreenNameDbh screenNameDbh) {
+                              BlowfishDbh blowfishDbh, BlowfishDbh blowfishPostAutoDbh, ScreenNameDbh screenNameDbh) {
         this.pathPrefix = pathPrefix;
         this.dbPool = dbPool;
         this.userBlowfishDbh = userBlowfishDbh;
         this.userDbh = userDbh;
         this.blowfishDbh = blowfishDbh;
+        this.blowfishPostAutoDbh = blowfishPostAutoDbh;
         this.screenNameDbh = screenNameDbh;
     }
 
 
     public BlowfishUserModule(DbPool dbPool, UserBlowfishDbh userBlowfishDbh, UserDbh userDbh, BlowfishDbh blowfishDbh,
-                              ScreenNameDbh screenNameDbh) {
+                              BlowfishDbh blowfishPostAutoDbh, ScreenNameDbh screenNameDbh) {
 
 
-        this(DEFAULT_PATH_PREFIX, dbPool, userBlowfishDbh, userDbh, blowfishDbh, screenNameDbh);
+        this(DEFAULT_PATH_PREFIX, dbPool, userBlowfishDbh, userDbh, blowfishDbh, blowfishPostAutoDbh, screenNameDbh);
     }
 
 
@@ -69,13 +69,13 @@ public class BlowfishUserModule implements HttpModule {
         List<Route> ret = new ArrayList<>();
 
         ret.add(new PostRoute(pathPrefix + "autoregister",
-                new AutoregistrationBfEp(dbPool, userDbh, blowfishDbh, userBlowfishDbh)));
+                new AutoregistrationBfEp(dbPool, userDbh, blowfishDbh, blowfishPostAutoDbh, userBlowfishDbh)));
         ret.add(new PostRoute(pathPrefix + "login",
                 new LoginBfEp(dbPool, userDbh, blowfishDbh, screenNameDbh)));
         ret.add(new PostRoute(pathPrefix + "register",
-                new RegistrationBfEp(dbPool, userDbh, blowfishDbh, userBlowfishDbh, screenNameDbh)));
+                new RegistrationBfEp(dbPool, userDbh, blowfishDbh, userBlowfishDbh, blowfishPostAutoDbh, screenNameDbh)));
         ret.add(new PostRoute(pathPrefix + "register_postauto",
-                new RegistrationPostAutoBfEp(dbPool, userDbh, blowfishDbh, userBlowfishDbh, screenNameDbh)));
+                new RegistrationPostAutoBfEp(dbPool, userDbh, userBlowfishDbh, blowfishDbh, blowfishPostAutoDbh, screenNameDbh)));
 
 
         return ret;

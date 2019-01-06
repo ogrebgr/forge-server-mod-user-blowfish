@@ -116,27 +116,6 @@ public class BlowfishDbhImpl implements BlowfishDbh {
 
 
     @Override
-    public Blowfish replace(Connection dbc, long userId, String username, String passwordClearForm) throws SQLException {
-        Blowfish ret = new Blowfish(userId, username, passwordClearForm);
-
-        String sql = "UPDATE " + mTableName + " SET " +
-                "username = ?, " +
-                "password = ?," +
-                "username_lc = ? " +
-                "WHERE user = ?";
-        try (PreparedStatement psUpdate = dbc.prepareStatement(sql)) {
-            psUpdate.setString(1, username);
-            psUpdate.setString(2, BCrypt.hashpw(passwordClearForm, BCrypt.gensalt()));
-            psUpdate.setString(3, username.toLowerCase());
-            psUpdate.setLong(4, userId);
-            psUpdate.executeUpdate();
-        }
-
-        return ret;
-    }
-
-
-    @Override
     public boolean changePassword(Connection dbc, long userId, String passwordClearForm) throws SQLException {
         String sql = "UPDATE " + mTableName + " SET " +
                 "password = ? " +

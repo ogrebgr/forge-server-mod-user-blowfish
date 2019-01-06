@@ -36,16 +36,18 @@ public class RegistrationBfEp extends ForgeDbSecureEndpoint {
     private final UserDbh userDbh;
     private final BlowfishDbh blowfishDbh;
     private final UserBlowfishDbh userBlowfishDbh;
+    private final BlowfishDbh blowfishPostAutoDbh;
     private final ScreenNameDbh screenNameDbh;
 
 
     public RegistrationBfEp(DbPool dbPool, UserDbh userDbh, BlowfishDbh blowfishDbh, UserBlowfishDbh userBlowfishDbh,
-                            ScreenNameDbh screenNameDbh) {
+                            BlowfishDbh blowfishPostAutoDbh, ScreenNameDbh screenNameDbh) {
 
         super(dbPool);
         this.userDbh = userDbh;
         this.blowfishDbh = blowfishDbh;
         this.userBlowfishDbh = userBlowfishDbh;
+        this.blowfishPostAutoDbh = blowfishPostAutoDbh;
         this.screenNameDbh = screenNameDbh;
 
         gson = new Gson();
@@ -79,20 +81,21 @@ public class RegistrationBfEp extends ForgeDbSecureEndpoint {
 
 
         UserBlowfishDbh.NewNamedResult rez = userBlowfishDbh.createNewNamed(dbc, userDbh, blowfishDbh,
+                blowfishPostAutoDbh,
                 screenNameDbh, username, password, screenName);
 
-        if (rez.isOk) {
-            SessionInfo si = new SessionInfo(rez.mUserBlowfish.getUser().getId(), null);
+        if (rez.isOk()) {
+            SessionInfo si = new SessionInfo(rez.getUser().getId(), null);
 
             Session session = ctx.getSession();
-            session.setVar(SessionVars.VAR_USER, rez.mUserBlowfish.getUser());
+            session.setVar(SessionVars.VAR_USER, rez.getUser());
             session.setVar(SessionVars.VAR_LOGIN_TYPE, LoginType.NATIVE);
             return new OkResponse(
                     gson.toJson(new RokLogin(
                             session.getMaxInactiveInterval(),
                             si
                     )));
-        } else if (rez.usernameExist) {
+        } else if (rez.isUsernameTaken()) {
             return new ForgeResponse(UserResponseCodes.Errors.USERNAME_EXISTS, "Invalid Login");
         } else {
             return new ForgeResponse(UserResponseCodes.Errors.SCREEN_NAME_EXISTS, "screen name taken");

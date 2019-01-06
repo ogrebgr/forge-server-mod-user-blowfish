@@ -28,11 +28,15 @@ public class AutoregistrationBfEp extends ForgeDbEndpoint {
 
     private final UserDbh userDbh;
     private final BlowfishDbh blowfishDbh;
+    private final BlowfishDbh blowfishPostAutoDbh;
     private final UserBlowfishDbh userBlowfishDbh;
 
 
-    public AutoregistrationBfEp(DbPool dbPool, UserDbh userDbh, BlowfishDbh scramDbh, UserBlowfishDbh userBlowfishDbh) {
+    public AutoregistrationBfEp(DbPool dbPool, UserDbh userDbh, BlowfishDbh scramDbh,
+                                BlowfishDbh blowfishPostAutoDbh,
+                                UserBlowfishDbh userBlowfishDbh) {
         super(dbPool);
+        this.blowfishPostAutoDbh = blowfishPostAutoDbh;
         gson = new Gson();
         this.userDbh = userDbh;
         blowfishDbh = scramDbh;
@@ -56,7 +60,7 @@ public class AutoregistrationBfEp extends ForgeDbEndpoint {
             // adding "g" as a prefix in order to make the username valid when UUID starts with number
             username = "g" + UUID.randomUUID().toString().replace("-", "");
 
-            us = userBlowfishDbh.createNew(dbc, userDbh, blowfishDbh, username, password);
+            us = userBlowfishDbh.createNew(dbc, userDbh, blowfishDbh, blowfishPostAutoDbh, username, password);
             if (us != null) {
                 break;
             }

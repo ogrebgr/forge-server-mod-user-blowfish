@@ -14,18 +14,21 @@ public class UserBlowfishDbhImpl implements UserBlowfishDbh {
 
 
     @Override
-    public UserBlowfish createNew(Connection dbc, UserDbh userDbh, BlowfishDbh blowfishDbh,
+    public UserBlowfish createNew(Connection dbc, UserDbh userDbh, BlowfishDbh blowfishPrimaryDbh,
+                                  BlowfishDbh blowfishSecondaryDbh,
                                   String username, String passwordClearForm) throws SQLException {
         try {
             String sqlLock = "LOCK TABLES users WRITE, user_blowfish WRITE";
             Statement stLock = dbc.createStatement();
             stLock.execute(sqlLock);
 
-            if (!blowfishDbh.usernameExists(dbc, username)) {
+            if (!(blowfishPrimaryDbh.usernameExists(dbc, username) &&
+                    blowfishSecondaryDbh.usernameExists(dbc, username))) {
+
                 try {
                     dbc.setAutoCommit(false);
                     User user = userDbh.createNew(dbc, false, UserLoginType.SCRAM);
-                    Blowfish blowfish = blowfishDbh.createNew(dbc, user.getId(), username, passwordClearForm);
+                    Blowfish blowfish = blowfishPrimaryDbh.createNew(dbc, user.getId(), username, passwordClearForm);
                     dbc.commit();
                     return new UserBlowfish(user, blowfish);
                 } catch (SQLException e) {
@@ -46,36 +49,38 @@ public class UserBlowfishDbhImpl implements UserBlowfishDbh {
 
 
     @Override
-    public NewNamedResult createNewNamed(Connection dbc, UserDbh userDbh, BlowfishDbh blowfishDbh,
+    public NewNamedResult createNewNamed(Connection dbc, UserDbh userDbh, BlowfishDbh blowfishPrimaryDbh,
+                                         BlowfishDbh blowfishSecondaryDbh,
                                          ScreenNameDbh screenNameDbh, String username, String passwordClearForm,
                                          String screenName) throws SQLException {
 
 
         try {
-            String sqlLock = "LOCK TABLES users WRITE, user_blowfish WRITE, user_screen_names WRITE";
+            String sqlLock = "LOCK TABLES users WRITE, user_blowfish WRITE, user_blowfish_post_auto WRITE, " +
+                    "user_screen_names WRITE";
             Statement stLock = dbc.createStatement();
             stLock.execute(sqlLock);
 
-            if (blowfishDbh.usernameExists(dbc, username)) {
-                return new NewNamedResult(false, null, true);
+            if (blowfishPrimaryDbh.usernameExists(dbc, username) || blowfishSecondaryDbh.usernameExists(dbc, username)) {
+                return NewNamedResult.createFailUsernameTaken();
             }
 
 
             if (screenNameDbh.exists(dbc, screenName)) {
-                return new NewNamedResult(false, null, false);
+                return NewNamedResult.createFailScreenNameTaken();
             }
 
 
             try {
                 dbc.setAutoCommit(false);
 
-                User user = userDbh.createNew(dbc, false, UserLoginType.SCRAM);
-                Blowfish blowfish = blowfishDbh.createNew(dbc, user.getId(), username, passwordClearForm);
+                User user = userDbh.createNew(dbc, false, UserLoginType.BLOWFISH);
+                blowfishPrimaryDbh.createNew(dbc, user.getId(), username, passwordClearForm);
 
                 screenNameDbh.createNew(dbc, user.getId(), screenName);
                 dbc.commit();
 
-                return new NewNamedResult(true, new UserBlowfish(user, blowfish), false);
+                return NewNamedResult.createOk(user);
             } catch (Exception e) {
                 dbc.rollback();
                 throw e;
@@ -87,51 +92,5 @@ public class UserBlowfishDbhImpl implements UserBlowfishDbh {
             Statement stLock = dbc.createStatement();
             stLock.execute(sqlLock);
         }
-    }
-
-
-    @Override
-    public boolean replaceExisting(Connection dbc, BlowfishDbh blowfishDbh, ScreenNameDbh screenNameDbh,
-                                   long userId, String newUsername, String passwordClearForm, String screenName)
-            throws SQLException {
-
-        try {
-            String sqlLock = "LOCK TABLES user_blowfish WRITE, user_screen_names WRITE";
-            Statement stLock = dbc.createStatement();
-            stLock.execute(sqlLock);
-
-            if (screenNameDbh.exists(dbc, screenName)) {
-                return false;
-            }
-
-            try {
-                dbc.setAutoCommit(false);
-
-                replaceExistingNamed(dbc, blowfishDbh, userId, newUsername, passwordClearForm);
-                screenNameDbh.createNew(dbc, userId, screenName);
-                dbc.commit();
-
-                return true;
-            } catch (Exception e) {
-                dbc.rollback();
-                throw e;
-            } finally {
-                dbc.setAutoCommit(true);
-            }
-        } finally {
-            String sqlLock = "UNLOCK TABLES";
-            Statement stLock = dbc.createStatement();
-            stLock.execute(sqlLock);
-        }
-    }
-
-
-    @Override
-    public void replaceExistingNamed(Connection dbc, BlowfishDbh blowfishDbh, long userId, String newUsername,
-                                     String passwordClearForm) throws SQLException {
-
-        blowfishDbh.replace(dbc, userId,
-                newUsername,
-                passwordClearForm);
     }
 }

@@ -9,6 +9,7 @@ import com.bolyartech.forge.server.module.user.data.screen_name.ScreenNameDbh;
 import com.bolyartech.forge.server.module.user.data.user.User;
 import com.bolyartech.forge.server.module.user.data.user.UserDbh;
 import com.bolyartech.forge.server.module.user_blowfish.data.BlowfishDbh;
+import com.bolyartech.forge.server.module.user_blowfish.data.UserBlowfish;
 import com.bolyartech.forge.server.module.user_blowfish.data.UserBlowfishDbh;
 import com.bolyartech.forge.server.response.ResponseException;
 import com.bolyartech.forge.server.response.forge.ForgeResponse;
@@ -30,22 +31,25 @@ public class RegistrationPostAutoBfEp extends ForgeUserDbEndpoint {
     private final Gson gson;
 
     private final UserDbh userDbh;
+    private final UserBlowfishDbh userBlowfishPostAutoDbh;
     private final BlowfishDbh blowfishDbh;
-    private final UserBlowfishDbh userBlowfishDbh;
+    private final BlowfishDbh blowfishPostAutoDbh;
+
     private final ScreenNameDbh screenNameDbh;
 
 
     public RegistrationPostAutoBfEp(DbPool dbPool,
                                     UserDbh userDbh,
-                                    BlowfishDbh scramDbh,
-                                    UserBlowfishDbh userBlowfishDbh,
+                                    UserBlowfishDbh userBlowfishPostAutoDbh,
+                                    BlowfishDbh blowfishDbh, BlowfishDbh blowfishPostAutoDbh,
                                     ScreenNameDbh screenNameDbh) {
 
         super(dbPool);
+        this.blowfishDbh = blowfishDbh;
+        this.blowfishPostAutoDbh = blowfishPostAutoDbh;
         gson = new Gson();
         this.userDbh = userDbh;
-        blowfishDbh = scramDbh;
-        this.userBlowfishDbh = userBlowfishDbh;
+        this.userBlowfishPostAutoDbh = userBlowfishPostAutoDbh;
         this.screenNameDbh = screenNameDbh;
     }
 
@@ -82,21 +86,29 @@ public class RegistrationPostAutoBfEp extends ForgeUserDbEndpoint {
         }
 
 
-        boolean rez;
         if (existingScreenName == null) {
-            rez = userBlowfishDbh.replaceExisting(dbc, blowfishDbh, screenNameDbh,
-                    user.getId(), newUsername, newPassword, screenName);
-        } else {
-            userBlowfishDbh.replaceExistingNamed(dbc, blowfishDbh,
-                    user.getId(), newUsername, newPassword);
-            rez = true;
-        }
+            UserBlowfishDbh.NewNamedResult tmp = userBlowfishPostAutoDbh.createNewNamed(dbc, userDbh,
+                    blowfishPostAutoDbh,
+                    blowfishDbh,
+                    screenNameDbh, newUsername, newPassword, screenName);
 
-        if (rez) {
-            return new OkResponse();
+            if (tmp.isOk()) {
+                return new OkResponse();
+            } else if (tmp.isUsernameTaken()) {
+                return new ForgeResponse(UserResponseCodes.Errors.USERNAME_EXISTS, "Invalid Login");
+            } else {
+                return new ForgeResponse(UserResponseCodes.Errors.SCREEN_NAME_EXISTS, "Screen name taken");
+            }
+
         } else {
-            return new ForgeResponse(UserResponseCodes.Errors.SCREEN_NAME_EXISTS, "Scree name already taken");
+            UserBlowfish tmp = userBlowfishPostAutoDbh.createNew(dbc, userDbh,
+                    blowfishPostAutoDbh,  blowfishDbh, newUsername,
+                    newPassword);
+            if (tmp != null) {
+                return new OkResponse();
+            } else {
+                return new ForgeResponse(UserResponseCodes.Errors.USERNAME_EXISTS, "Invalid Login");
+            }
         }
     }
-
 }

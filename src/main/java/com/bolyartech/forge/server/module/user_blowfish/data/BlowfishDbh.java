@@ -14,9 +14,6 @@ public interface BlowfishDbh {
     Blowfish createNew(Connection dbc, long user, String username, String passwordClearForm)
             throws SQLException;
 
-    Blowfish replace(Connection dbc, long userId, String username, String passwordClearForm)
-            throws SQLException;
-
     boolean changePassword(Connection dbc, long userId, String passwordClearForm)
             throws SQLException;
 }
