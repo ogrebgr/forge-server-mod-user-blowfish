@@ -87,11 +87,15 @@ public class RegistrationPostAutoBfEp extends ForgeUserDbEndpoint {
 
 
         if (existingScreenName == null) {
-            UserBlowfishDbh.NewNamedResult tmp = userBlowfishPostAutoDbh.createNewNamed(dbc, userDbh,
+
+            UserBlowfishDbh.NewNamedResult tmp = userBlowfishPostAutoDbh.createNewNamedPostAuto(dbc,
                     blowfishPostAutoDbh,
                     blowfishDbh,
-                    screenNameDbh, newUsername, newPassword, screenName);
-
+                    screenNameDbh,
+                    user.getId(),
+                    newUsername,
+                    newPassword,
+                    screenName);
             if (tmp.isOk()) {
                 return new OkResponse();
             } else if (tmp.isUsernameTaken()) {

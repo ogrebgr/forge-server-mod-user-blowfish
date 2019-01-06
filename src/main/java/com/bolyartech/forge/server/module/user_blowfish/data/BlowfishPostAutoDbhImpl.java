@@ -7,4 +7,7 @@ public class BlowfishPostAutoDbhImpl extends BlowfishDbhImpl {
     protected String getTableName() {
         return USERS_TABLE_NAME;
     }
+
+
+
 }

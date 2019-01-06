@@ -14,6 +14,7 @@ import com.bolyartech.forge.server.module.user.data.user.UserDbh;
 import com.bolyartech.forge.server.module.user_blowfish.data.BCrypt;
 import com.bolyartech.forge.server.module.user_blowfish.data.Blowfish;
 import com.bolyartech.forge.server.module.user_blowfish.data.BlowfishDbh;
+import com.bolyartech.forge.server.module.user_blowfish.data.UserBlowfishDbh;
 import com.bolyartech.forge.server.response.ResponseException;
 import com.bolyartech.forge.server.response.forge.ForgeResponse;
 import com.bolyartech.forge.server.response.forge.MissingParametersResponse;
@@ -21,29 +22,32 @@ import com.bolyartech.forge.server.response.forge.OkResponse;
 import com.bolyartech.forge.server.route.RequestContext;
 import com.bolyartech.forge.server.session.Session;
 import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
 
-public class LoginBfEp extends ForgeDbSecureEndpoint {
+public class LoginPostAutoEp extends ForgeDbSecureEndpoint {
     static final String PARAM_USERNAME = "username";
     static final String PARAM_PASSWORD = "password";
 
-
     private final UserDbh UserDbh;
-    private final BlowfishDbh BlowfishDbh;
-    private final ScreenNameDbh ScreenNameDbh;
+    private final BlowfishDbh blowfishDbh;
+    private final ScreenNameDbh screenNameDbh;
+    private final UserBlowfishDbh userBlowfishDbh;
+    private final BlowfishDbh blowfishPostAutoDbh;
 
     private final Gson gson;
 
 
-    public LoginBfEp(DbPool dbPool, UserDbh userDbh, BlowfishDbh blowfishDbh, ScreenNameDbh screenNameDbh) {
+    public LoginPostAutoEp(DbPool dbPool, UserDbh userDbh, BlowfishDbh blowfishDbh, ScreenNameDbh screenNameDbh,
+                           UserBlowfishDbh userBlowfishDbh, BlowfishDbh blowfishPostAutoDbh) {
         super(dbPool);
         UserDbh = userDbh;
-        BlowfishDbh = blowfishDbh;
-        ScreenNameDbh = screenNameDbh;
+        this.blowfishDbh = blowfishDbh;
+        this.screenNameDbh = screenNameDbh;
+        this.userBlowfishDbh = userBlowfishDbh;
+        this.blowfishPostAutoDbh = blowfishPostAutoDbh;
         gson = new Gson();
     }
 
@@ -54,7 +58,7 @@ public class LoginBfEp extends ForgeDbSecureEndpoint {
         String password = ctx.getFromPost(PARAM_PASSWORD);
 
         if (Params.areAllPresent(username, password)) {
-            Blowfish bfUser = BlowfishDbh.loadByUsername(dbc, username);
+            Blowfish bfUser = blowfishPostAutoDbh.loadByUsername(dbc, username);
             if (bfUser != null) {
                 if ((BCrypt.checkpw(password, bfUser.getPasswordHash()))) {
                     User user = UserDbh.loadById(dbc, bfUser.getUser());
@@ -65,7 +69,9 @@ public class LoginBfEp extends ForgeDbSecureEndpoint {
 
                     SessionInfo si = createSessionInfo(dbc, bfUser.getUser());
 
-                    return new OkResponse(gson.toJson(new RokLogin(session.getMaxInactiveInterval(), si)));
+                    userBlowfishDbh.postAutoToRegular(dbc, bfUser, blowfishDbh, blowfishPostAutoDbh);
+
+                    return new OkResponse(gson.toJson(new LoginBfEp.RokLogin(session.getMaxInactiveInterval(), si)));
                 } else {
                     return new ForgeResponse(UserResponseCodes.Errors.INVALID_LOGIN, "Invalid login");
                 }
@@ -79,7 +85,7 @@ public class LoginBfEp extends ForgeDbSecureEndpoint {
 
 
     private SessionInfo createSessionInfo(Connection dbc, long userId) throws SQLException {
-        ScreenName sn = ScreenNameDbh.loadByUser(dbc, userId);
+        ScreenName sn = screenNameDbh.loadByUser(dbc, userId);
 
         SessionInfo si;
         if (sn != null) {
@@ -89,19 +95,5 @@ public class LoginBfEp extends ForgeDbSecureEndpoint {
         }
 
         return si;
-    }
-
-
-    public static class RokLogin {
-        @SerializedName("session_ttl")
-        public final int sessionTtl;
-        @SerializedName("session_info")
-        public final SessionInfo sessionInfo;
-
-
-        public RokLogin(int sessionTtl, SessionInfo sessionInfo) {
-            this.sessionTtl = sessionTtl;
-            this.sessionInfo = sessionInfo;
-        }
     }
 }

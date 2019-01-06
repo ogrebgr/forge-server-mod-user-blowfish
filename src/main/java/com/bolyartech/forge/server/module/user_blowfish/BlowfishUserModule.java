@@ -7,10 +7,7 @@ import com.bolyartech.forge.server.module.user.data.screen_name.ScreenNameDbhImp
 import com.bolyartech.forge.server.module.user.data.user.UserDbh;
 import com.bolyartech.forge.server.module.user.data.user.UserDbhImpl;
 import com.bolyartech.forge.server.module.user_blowfish.data.*;
-import com.bolyartech.forge.server.module.user_blowfish.endpoints.AutoregistrationBfEp;
-import com.bolyartech.forge.server.module.user_blowfish.endpoints.LoginBfEp;
-import com.bolyartech.forge.server.module.user_blowfish.endpoints.RegistrationBfEp;
-import com.bolyartech.forge.server.module.user_blowfish.endpoints.RegistrationPostAutoBfEp;
+import com.bolyartech.forge.server.module.user_blowfish.endpoints.*;
 import com.bolyartech.forge.server.route.PostRoute;
 import com.bolyartech.forge.server.route.Route;
 
@@ -76,7 +73,8 @@ public class BlowfishUserModule implements HttpModule {
                 new RegistrationBfEp(dbPool, userDbh, blowfishDbh, userBlowfishDbh, blowfishPostAutoDbh, screenNameDbh)));
         ret.add(new PostRoute(pathPrefix + "register_postauto",
                 new RegistrationPostAutoBfEp(dbPool, userDbh, userBlowfishDbh, blowfishDbh, blowfishPostAutoDbh, screenNameDbh)));
-
+        ret.add(new PostRoute(pathPrefix + "login_post_auto",
+                new LoginPostAutoEp(dbPool, userDbh, blowfishDbh, screenNameDbh, userBlowfishDbh, blowfishPostAutoDbh)));
 
         return ret;
     }

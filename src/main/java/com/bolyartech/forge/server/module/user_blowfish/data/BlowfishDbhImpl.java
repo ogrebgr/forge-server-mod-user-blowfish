@@ -131,6 +131,16 @@ public class BlowfishDbhImpl implements BlowfishDbh {
     }
 
 
+    @Override
+    public boolean delete(Connection dbc, long userId) throws SQLException {
+        String sql = "DELETE FROM " + getTableName() + " WHERE user = ?";
+
+        try (PreparedStatement psDelete = dbc.prepareStatement(sql)) {
+            psDelete.setLong(1, userId);
+            return psDelete.executeUpdate() > 0;
+        }
+    }
+
     protected String getTableName() {
         return USERS_TABLE_NAME;
     }

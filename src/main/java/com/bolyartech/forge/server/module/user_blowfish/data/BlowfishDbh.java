@@ -16,4 +16,7 @@ public interface BlowfishDbh {
 
     boolean changePassword(Connection dbc, long userId, String passwordClearForm)
             throws SQLException;
+
+
+    boolean delete(Connection dbc, long userId) throws SQLException;
 }

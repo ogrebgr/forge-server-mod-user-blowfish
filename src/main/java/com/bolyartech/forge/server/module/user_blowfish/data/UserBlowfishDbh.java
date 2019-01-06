@@ -26,6 +26,15 @@ public interface UserBlowfishDbh {
                                   String passwordClearForm,
                                   String screenName) throws SQLException;
 
+    NewNamedResult createNewNamedPostAuto(Connection dbc,
+                                          BlowfishDbh blowfishPrimaryDbh,
+                                          BlowfishDbh blowfishSecondaryDbh,
+                                          ScreenNameDbh screenNameDbh,
+                                          long userId,
+                                          String username,
+                                          String passwordClearForm,
+                                          String screenName) throws SQLException;
+
 
     class NewNamedResult {
         private final boolean isOk;
@@ -76,4 +85,8 @@ public interface UserBlowfishDbh {
             return user;
         }
     }
+
+
+    void postAutoToRegular(Connection dbc, Blowfish blowfish, BlowfishDbh blowfishDbh,
+                           BlowfishDbh blowfishPostAutoDbh) throws SQLException;
 }
